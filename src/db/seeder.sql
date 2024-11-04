@@ -5,7 +5,6 @@ INSERT INTO  "courses" ("course_name","course_code","department_id","description
 ("IT開発エキスパート","IE",2,NULL),
 ("IT開発研究","SK",2,NULL),
 ("Webデザインコース","WD",2,NULL),
-("Webデザインコース","WD",2,NULL),
 ("システムエンジニアコース","SE",2,NULL),
 ("国際エンジニアコース","KE",2,NULL),
 ("ゲーム開発エキスパートコース","GE",1,NULL),

@@ -3,6 +3,8 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import studentRouter from "./routes/students";
 
+import teacherRouter from "./routes/teachers";
+
 const app = new Hono();
 app.use("*", cors());
 
@@ -11,6 +13,9 @@ app.get("/", (c) => c.text("Gaku-app Kai Api"));
 
 // Mount Student Routes
 app.route("/students", studentRouter);
+
+//Mount Teacher Route
+app.route("/teachers",teacherRouter);
 
 // Start the server
 const port = 3000;

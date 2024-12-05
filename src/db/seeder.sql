@@ -1,58 +1,21 @@
-INSERT INTO "departments" ("department_name") VALUES ('Game'),('IT');
+-- Seed Departments
+INSERT INTO "departments" ("department_name") VALUES 
+('Game'),
+('IT');
 
--- Insert Courses
-INSERT INTO  "courses" ("course_name","course_code","department_id","description") VALUES
-("IT開発エキスパート","IE",2,NULL),
-("IT開発研究","SK",2,NULL),
-("Webデザインコース","WD",2,NULL),
-("システムエンジニアコース","SE",2,NULL),
-("国際エンジニアコース","KE",2,NULL),
-("ゲーム開発エキスパートコース","GE",1,NULL),
-("ゲームプログラム開発コース","GP",1,NULL),
-("CGデザインコース","CG",1,NULL),
+-- Seed Courses
+INSERT INTO "courses" ("course_name", "course_code", "department_id", "description") VALUES 
+('IT開発エキスパート', 'IE', (SELECT MIN(department_id) FROM departments WHERE department_name = 'IT'), 'IT Development Expert Course'),
+('IT開発研究', 'SK', (SELECT MIN(department_id) FROM departments WHERE department_name = 'IT'), 'IT Development Research Course'),
+('Webデザインコース', 'WD', (SELECT MIN(department_id) FROM departments WHERE department_name = 'IT'), 'Web Design Course'),
+('システムエンジニアコース', 'SE', (SELECT MIN(department_id) FROM departments WHERE department_name = 'IT'), 'System Engineer Course'),
+('国際エンジニアコース', 'KE', (SELECT MIN(department_id) FROM departments WHERE department_name = 'IT'), 'International Engineering Course'),
+('ゲーム開発エキスパートコース', 'GE', (SELECT MIN(department_id) FROM departments WHERE department_name = 'Game'), 'Game Development Expert Course'),
+('ゲームプログラム開発コース', 'GP', (SELECT MIN(department_id) FROM departments WHERE department_name = 'Game'), 'Game Programming Development Course'),
+('CGデザインコース', 'CG', (SELECT MIN(department_id) FROM departments WHERE department_name = 'Game'), 'CG Design Course');
 
--- Insert Permissions
-INSERT INTO "permissions" ("permission_name", "description") VALUES
-('create_news', 'Permission to create news articles'),
-('delete_news', 'Permission to delete news articles'),
-('view_admin_news', 'Permission to view admin-only news');
-
--- Insert Role Permissions
-INSERT INTO "role_permissions" ("role", "permission_id") VALUES
-('teacher', 1),
-('teacher', 2),
-('teacher', 3),
-('admin', 1),
-('admin', 2),
-('admin', 3);
-
-
--- Insert Users 
-INSERT INTO "users" ("user_name", "password", "email", "date_of_birth", "role", "department_id", "hire_date", "is_active") VALUES
-('Alice Smith', 'hashed_password', 'alice@school.edu', '1985-04-12', 'teacher', 1, '2010-09-01', true),
-('Bob Brown', 'hashed_password', 'bob@school.edu', '1975-05-20', 'admin', NULL, '2005-09-01', true),
-('Charlie Johnson', 'hashed_password', 'charlie@school.edu', '2000-09-15', 'student', NULL, NULL, true);
-
--- Insert HR Classes
-INSERT INTO "hr_classes" ("hr_class_id", "department_id", "course_code",'teacher_id') VALUES
-('SK1A', 2, "SK", NULL),
-('SK2A', 2, "SK", NULL),
-('SK3A', 2, "SK", NULL),
-('SK1B', 2, "SK", NULL),
-('SK2B', 2, "SK", NULL),
-('SK3B', 2, "SK", NULL),
-('IE1A', 2, "IE", NULL),
-('IE2A', 2, "IE", NULL),
-('IE3A', 2, "IE", NULL),
-('IE4A', 2, "IE", NULL),
-('IE1B', 2, "IE", NULL),
-('IE2B', 2, "IE", NULL),
-('IE3B', 2, "IE", NULL),
-('IE4B', 2, "IE", NULL),
-
--- Insert News Categories
+-- Seed News Categories
 INSERT INTO "news_categories" ("news_category_name") VALUES
-('全てのお知らせ'),
 ('学校からの連絡'),
 ('担任からの連絡'),
 ('キャリアセンターより'),
@@ -60,17 +23,83 @@ INSERT INTO "news_categories" ("news_category_name") VALUES
 ('図書館からの連絡'),
 ('事務局からの連絡'),
 ('クラブ・サークル'),
-('その他'),
+('その他');
 
--- Insert News FIX ID Later
-INSERT INTO "news" ("title", "news_contents", "news_category_id", "publish_at", "author_id", "is_public", "high_priority", "is_deleted") VALUES
-('【キャリアセンター】求人情報プリント発行します(8/26発行）', 'Explore alternatives to MongoDB Realm and learn how Supabase provides powerful solutions for device synchronization and real-time database capabilities.', (SELECT "news_category_id" FROM "news_categories" WHERE "news_category_name" = 'キャリアセンターより'), '2024-10-27', 1, true, false, false),
-('【キャリアセンター】8/10（土）～8/20（火）はお休みです', 'Explore alternatives to MongoDB Realm and learn how Supabase provides powerful solutions for device synchronization and real-time database capabilities.', (SELECT "news_category_id" FROM "news_categories" WHERE "news_category_name" = 'キャリアセンターより'), '2024-10-27', 1, true, false, false),
-('学校休館期間・先生の出勤のお知らせ', 'Explore alternatives to MongoDB Realm and learn how Supabase provides powerful solutions for device synchronization and real-time database capabilities.', (SELECT "news_category_id" FROM "news_categories" WHERE "news_category_name" = '学校からの連絡'), '2024-10-27', 1, true, false, false),
-('「外国人留学生の滞在に伴う家族等の渡日状況アンケート調査」への協力のお願い', 'Explore alternatives to MongoDB Realm and learn how Supabase provides powerful solutions for device synchronization and real-time database capabilities.', (SELECT "news_category_id" FROM "news_categories" WHERE "news_category_name" = 'その他'), '2024-10-27', 1, true, false, false),
-('TOEICの問題集を図書室に置きました', 'Explore alternatives to MongoDB Realm and learn how Supabase provides powerful solutions for device synchronization and real-time database capabilities.', (SELECT "news_category_id" FROM "news_categories" WHERE "news_category_name" = '図書館からの連絡'), '2024-10-27', 1, true, false, false),
-('学年混合ゲーム制作イベントGameIndustriesJamを学生主体で開催！', 'Explore alternatives to MongoDB Realm and learn how Supabase provides powerful solutions for device synchronization and real-time database capabilities.', (SELECT "news_category_id" FROM "news_categories" WHERE "news_category_name" = '学校からの連絡'), '2024-10-27', 1, true, false, false),
-('ピアスッタフ募集！！', 'Explore alternatives to MongoDB Realm and learn how Supabase provides powerful solutions for device synchronization and real-time database capabilities.', (SELECT "news_category_id" FROM "news_categories" WHERE "news_category_name" = '学校からの連絡'), '2024-10-27', 1, true, false, false),
-('夏期選択講座 受講許可一覧', 'Explore alternatives to MongoDB Realm and learn how Supabase provides powerful solutions for device synchronization and real-time database capabilities.', (SELECT "news_category_id" FROM "news_categories" WHERE "news_category_name" = '学校からの連絡'), '2024-10-27', 1, true, false, false),
-('保健室・学生相談室だより【夏号】', 'Explore alternatives to MongoDB Realm and learn how Supabase provides powerful solutions for device synchronization and real-time database capabilities.', (SELECT "news_category_id" FROM "news_categories" WHERE "news_category_name" = '学校からの連絡'), '2024-10-27', 1, true, false, false),
-('近隣のマンションから苦情がきています。', 'Explore alternatives to MongoDB Realm and learn how Supabase provides powerful solutions for device synchronization and real-time database capabilities.', (SELECT "news_category_id" FROM "news_categories" WHERE "news_category_name" = '学校からの連絡'), '2024-10-27', 1, true, false, false);
+-- Seed Teacher Users
+INSERT INTO "teacher_users" ("user_name", "password", "email", "date_of_birth", "hire_date", "employment_status") VALUES
+('John Doe', 'password123', 'jdoe@example.com', '1985-06-15', now(), 'Full-time'),
+('Jane Smith', 'password123', 'jsmith@example.com', '1990-02-10', now(), 'Part-time'),
+('Michael Brown', 'password123', 'mbrown@example.com', '1978-11-20', now(), 'Full-time'),
+('Emily Davis', 'password123', 'edavis@example.com', '1988-04-05', now(), 'Part-time');
+
+-- Seed Admin Users
+INSERT INTO "admin_users" ("user_name", "password", "email", "date_of_birth", "hire_date", "employment_status") VALUES
+('Admin One', 'admin123', 'admin1@example.com', '1975-03-25', now(), 'Permanent'),
+('Admin Two', 'admin123', 'admin2@example.com', '1980-07-20', now(), 'Temporary');
+
+-- Seed HR Classes
+INSERT INTO "hr_classes" ("hr_class_id", "course_id", "teacher_id") VALUES
+('SK1A', (SELECT MIN(course_id) FROM courses WHERE course_code = 'SK'), (SELECT MIN(teacher_user_id) FROM teacher_users WHERE user_name = 'John Doe')),
+('SK2A', (SELECT MIN(course_id) FROM courses WHERE course_code = 'SK'), (SELECT MIN(teacher_user_id) FROM teacher_users WHERE user_name = 'Jane Smith')),
+('SK3A', (SELECT MIN(course_id) FROM courses WHERE course_code = 'SK'), (SELECT MIN(teacher_user_id) FROM teacher_users WHERE user_name = 'Michael Brown')),
+('IE1A', (SELECT MIN(course_id) FROM courses WHERE course_code = 'IE'), (SELECT MIN(teacher_user_id) FROM teacher_users WHERE user_name = 'Emily Davis')),
+('GE1A', (SELECT MIN(course_id) FROM courses WHERE course_code = 'GE'), (SELECT MIN(teacher_user_id) FROM teacher_users WHERE user_name = 'John Doe'));
+
+-- Seed Student Users
+INSERT INTO "student_users" ("hr_class_id", "user_name", "password", "email", "date_of_birth", "enrollment_date", "enrollment_status") VALUES
+((SELECT MIN(hr_class_id) FROM hr_classes WHERE hr_class_id = 'SK1A'), 'Alice Johnson', 'student123', 'alice@example.com', '2005-01-10', now(), 'Active'),
+((SELECT MIN(hr_class_id) FROM hr_classes WHERE hr_class_id = 'SK2A'), 'Bob Brown', 'student123', 'bob@example.com', '2006-02-15', now(), 'Active'),
+((SELECT MIN(hr_class_id) FROM hr_classes WHERE hr_class_id = 'SK3A'), 'Charlie Davis', 'student123', 'charlie@example.com', '2005-05-20', now(), 'Active'),
+((SELECT MIN(hr_class_id) FROM hr_classes WHERE hr_class_id = 'IE1A'), 'Diana White', 'student123', 'diana@example.com', '2004-11-30', now(), 'Active');
+
+-- Seed Student Groups
+INSERT INTO "student_groups" ("group_name", "created_by_teacher") VALUES
+('SK Study Group', (SELECT MIN(teacher_user_id) FROM teacher_users WHERE user_name = 'John Doe')),
+('Game Dev Team', (SELECT MIN(teacher_user_id) FROM teacher_users WHERE user_name = 'Jane Smith'));
+
+-- Seed Student Group Members
+INSERT INTO "student_group_members" ("student_group_id", "student_user_id") VALUES
+((SELECT MIN(student_group_id) FROM student_groups WHERE group_name = 'SK Study Group'), 
+ (SELECT MIN(student_user_id) FROM student_users WHERE user_name = 'Alice Johnson')),
+((SELECT MIN(student_group_id) FROM student_groups WHERE group_name = 'SK Study Group'), 
+ (SELECT MIN(student_user_id) FROM student_users WHERE user_name = 'Bob Brown'));
+
+-- Seed Student News
+INSERT INTO "student_news" ("title", "publish_at", "news_category_id", "news_contents", "author_id", "author_type", "is_public", "high_priority") VALUES
+('Welcome Back!', now(), 
+ (SELECT MIN(news_category_id) FROM news_categories WHERE news_category_name = '学校からの連絡'), 
+ 'Welcome back to the new school year!', 
+ (SELECT MIN(teacher_user_id) FROM teacher_users WHERE user_name = 'John Doe'), 
+ 'teacher', true, false),
+('Upcoming Sports Meet', now(), 
+ (SELECT MIN(news_category_id) FROM news_categories WHERE news_category_name = '学校行事'), 
+ 'Join us for the annual sports meet!', 
+ (SELECT MIN(teacher_user_id) FROM teacher_users WHERE user_name = 'Jane Smith'), 
+ 'teacher', true, true);
+
+-- Seed Teacher/Admin News
+INSERT INTO "teacher_admin_news" ("title", "publish_at", "news_category_id", "news_contents", "author_id", "author_type", "is_public", "high_priority") VALUES
+('Staff Meeting', now(), 
+ (SELECT MIN(news_category_id) FROM news_categories WHERE news_category_name = '事務局からの連絡'), 
+ 'All staff must attend the monthly meeting.', 
+ (SELECT MIN(admin_user_id) FROM admin_users WHERE user_name = 'Admin One'), 
+ 'admin', false, true);
+
+-- Seed School Events
+INSERT INTO "school_events" ("title", "description", "location", "start_datetime", "end_datetime", "is_public") VALUES
+('Annual Sports Meet', 'Sports events for students and staff.', 'School Ground', now(), now() + interval '10 hours', true),
+('Parent-Teacher Conference', 'Discuss student progress with parents.', 'Main Hall', now() + interval '1 month', now() + interval '1 month' + interval '6 hours', false);
+
+-- Seed News Attachments
+INSERT INTO "student_news_attachments" ("student_news_id", "file_name", "file_path", "file_type", "file_size") VALUES
+(1, 'welcome_letter.pdf', '/uploads/news/1/welcome_letter.pdf', 'application/pdf', 1024),
+(2, 'sports_meet_schedule.pdf', '/uploads/news/2/sports_meet_schedule.pdf', 'application/pdf', 2048);
+
+-- Seed News Mentions and Reads
+INSERT INTO "student_news_mentions" ("student_news_id", "student_user_id") VALUES
+(1, (SELECT MIN(student_user_id) FROM student_users WHERE user_name = 'Alice Johnson')),
+(1, (SELECT MIN(student_user_id) FROM student_users WHERE user_name = 'Bob Brown'));
+
+INSERT INTO "student_news_reads" ("student_news_id", "student_user_id") VALUES
+(1, (SELECT MIN(student_user_id) FROM student_users WHERE user_name = 'Alice Johnson')),
+(1, (SELECT MIN(student_user_id) FROM student_users WHERE user_name = 'Bob Brown'));

@@ -5,6 +5,8 @@ import studentRouter from "./routes/students";
 
 import teacherRouter from "./routes/teachers";
 
+import adminRouter from "./routes/admins";
+
 const app = new Hono();
 app.use("*", cors());
 
@@ -16,6 +18,9 @@ app.route("/students", studentRouter);
 
 //Mount Teacher Route
 app.route("/teachers",teacherRouter);
+
+//Mount Teacher Route
+app.route("/admins",adminRouter);
 
 // Start the server
 const port = 3000;

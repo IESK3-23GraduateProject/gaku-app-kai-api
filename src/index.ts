@@ -4,6 +4,7 @@ import { cors } from "hono/cors";
 import studentRouter from "./routes/students";
 import studentNewsRouter from "./routes/studentNews";
 import teacherAdminNewsRouter from "./routes/adminTeacherNews";
+import coursesRouter from "./routes/courses";
 
 const app = new Hono();
 app.use("*", cors());
@@ -15,6 +16,7 @@ app.get("/", (c) => c.text("Gaku-app Kai Api"));
 app.route("/students", studentRouter);
 app.route("/student-news", studentNewsRouter);
 app.route("/teacher-admin-news", teacherAdminNewsRouter);
+app.route("/courses",coursesRouter);
 
 // Start the server
 const port = 3000;

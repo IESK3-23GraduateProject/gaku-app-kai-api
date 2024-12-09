@@ -8,7 +8,7 @@ const schoolEventsRouter = new Hono();
 const createschoolEventsSchema = z.object({
   title: z.string().min(1, "Title is required"),
   description: z.string().min(1, "description is required"),
-  location: z.string().min(1,"location is required"),
+  location: z.string().min(1, "location is required"),
   related_news_url: z.string(),
   is_public: z.boolean().default(true),
   is_cancelled: z.boolean().default(false),

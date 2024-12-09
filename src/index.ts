@@ -8,6 +8,7 @@ import coursesRouter from "./routes/courses";
 import schoolEventsRouter from "./routes/schoolEvents";
 import teacherRouter from "./routes/teachers";
 import adminRouter from "./routes/admins";
+import studentNewsMentionsRouter from "./routes/studentNewsMentions";
 
 const app = new Hono();
 app.use("*", cors());
@@ -23,6 +24,7 @@ app.route("/courses", coursesRouter);
 app.route("/school-events", schoolEventsRouter);
 app.route("/teachers", teacherRouter);
 app.route("/admins", adminRouter);
+app.route("/student-news-mentions",studentNewsMentionsRouter);
 
 // Start the server
 const port = 3000;

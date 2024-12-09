@@ -7,6 +7,8 @@ import teacherAdminNewsRouter from "./routes/adminTeacherNews";
 
 import teacherRouter from "./routes/teachers";
 
+import adminRouter from "./routes/admins";
+
 const app = new Hono();
 app.use("*", cors());
 
@@ -20,6 +22,9 @@ app.route("/teacher-admin-news", teacherAdminNewsRouter);
 
 //Mount Teacher Route
 app.route("/teachers",teacherRouter);
+
+//Mount Teacher Route
+app.route("/admins",adminRouter);
 
 // Start the server
 const port = 3000;

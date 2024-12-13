@@ -10,7 +10,7 @@ const createTeacherSchema = z.object({
   user_name: z.string().min(2, "Name too short"),
   email: z.string().email("Invalid email"),
   password: z.string().min(6, "Password too short"),
-  date_of_birth: z.string(), //Additional validation might be needed
+  date_of_birth: z.string(),
   employment_status: z.string().optional(),
 });
 

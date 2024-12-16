@@ -11,35 +11,49 @@ const createStudentSchema = z.object({
   user_name: z.string().min(2, "Name too short"),
   email: z.string().email("Invalid email"),
   password: z.string().min(6, "Password too short"),
-  date_of_birth: z.string(), // Additional validation might be needed
+  date_of_birth: z.string(),
   enrollment_status: z.string().optional(),
 });
 
-// Get All Students
 studentRouter.get("/", async (c) => {
   const supabase = createSupabaseClient(c);
 
-  const { data, error } = await supabase.from("student_users").select("*");
+  const departmentName = c.req.query("department_name") || null;
+  const courseCode = c.req.query("course_code") || null;
+  const hrClassIdParam = c.req.query("hr_class_id") || null;
 
-  if (error) return c.json({ error: error.message }, 500);
-  return c.json(data);
+  // Convert to arrays for `course_filter` and `hr_classes_filter`
+  const courseCodeFilter = courseCode ? courseCode.split(",") : null;
+  const hrClassesFilter = hrClassIdParam ? hrClassIdParam.split(",") : null;
+
+  // Call the Supabase RPC function
+  const { data, error } = await supabase.rpc("get_student_users", {
+    department_filter: departmentName,
+    course_filter: courseCodeFilter,
+    hr_classes_filter: hrClassesFilter,
+  });
+
+  if (error) {
+    return c.json({ error: error.message }, 500);
+  }
+
+  return c.json({ data });
 });
 
 // Get Single Student
 studentRouter.get("/:id", async (c) => {
-  const id = Number(c.req.param("id"));
   const supabase = createSupabaseClient(c);
+  const studentId = c.req.param("id");
 
-  const { data, error } = await supabase
-    .from("student_users")
-    .select("*)")
-    .eq("student_user_id", id)
-    .single();
+  const { data, error } = await supabase.rpc("get_student_user_by_id", {
+    student_id: parseInt(studentId, 10),
+  });
 
-  if (error) return c.json({ error: error.message }, 500);
-  if (!data) return c.json({ error: "Student not found" }, 404);
+  if (error) {
+    return c.json({ error: error.message }, 500);
+  }
 
-  return c.json(data);
+  return c.json({ data });
 });
 
 // Create Student

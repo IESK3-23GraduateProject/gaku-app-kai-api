@@ -20,6 +20,7 @@ const createStudentNewsSchema = z.object({
 
 studentNewsRouter.get("/", async (c) => {
   const supabase = createSupabaseClient(c);
+  const userId = "2240002";
 
   const { data, error } = await supabase.rpc('get_student_news',{});
 
@@ -31,11 +32,14 @@ studentNewsRouter.get("/", async (c) => {
   }))
 
   return c.json(result);
+
 });
 
 studentNewsRouter.get("/:id", async (c) => {
   const id = Number(c.req.param("id"));
   const supabase = createSupabaseClient(c);
+  const userId = "2240002";
+
 
   const { data, error } = await supabase
     .rpc('get_student_news',{})
@@ -45,7 +49,64 @@ studentNewsRouter.get("/:id", async (c) => {
   if (error) return c.json({ error: error.message }, 500);
   if (!data) return c.json({ error: "News not found" }, 404);
 
-  return c.json(data);
+  if (!userId) {
+    return c.json({ error: "User ID is required" }, 400);
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("student_news")
+      .select(
+        `
+        *,
+        student_news_reads (
+          is_read,
+          read_at
+        )
+      `
+      )
+      .eq("student_news_id", id)
+      .single();
+
+    if (error) {
+      console.error("News fetch error:", error);
+      return c.json({ error: error.message }, 500);
+    }
+
+    if (!data) {
+      return c.json({ error: "News not found" }, 404);
+    }
+
+    // Check and insert read status if not exists
+    const readStatus = data.student_news_reads?.[0];
+
+    if (!readStatus) {
+      const { error: insertError } = await supabase
+        .from("student_news_reads")
+        .insert({
+          student_news_id: id,
+          student_user_id: userId,
+          is_read: true,
+          read_at: new Date().toISOString(),
+        });
+
+      if (insertError) {
+        console.error("Insert read status error:", insertError);
+        return c.json({ error: insertError.message }, 500);
+      }
+    }
+
+    const response = {
+      ...data,
+      is_read: readStatus ? readStatus.is_read : true,
+      read_at: readStatus?.read_at || new Date().toISOString(),
+    };
+
+    return c.json(response);
+  } catch (error) {
+    console.error("Unexpected error:", error);
+    return c.json({ error: "An unexpected error occurred" }, 500);
+  }
 });
 
 studentNewsRouter.post(

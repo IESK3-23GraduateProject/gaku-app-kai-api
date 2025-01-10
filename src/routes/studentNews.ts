@@ -14,58 +14,40 @@ const createStudentNewsSchema = z.object({
   is_public: z.boolean(),
   high_priority: z.boolean(),
   is_deleted: z.boolean().default(false),
+  parson_category:z.string(),
+  value:z.number(),
 });
 
 studentNewsRouter.get("/", async (c) => {
   const supabase = createSupabaseClient(c);
   const userId = "2240002";
 
-  if (!userId) {
-    return c.json({ error: "User ID is required" }, 400);
-  }
+  const { data, error } = await supabase.rpc('get_student_news',{});
 
-  const { data, error } = await supabase
-    .from("student_news")
-    .select(
-      `
-      *,
-      student_news_reads (
-        is_read,
-        read_at
-      )
-    `
-    )
-    .eq("student_news_reads.student_user_id", userId)
-    .order("created_at", { ascending: false });
+  if (error) return c.json({ error: error.message }, 500);
 
-  if (error) {
-    return c.json({ error: error.message }, 500);
-  }
+  const result = data.map((item:any)=>({
+    ...item,
+    is_read: item.read_at !== null
+  }))
 
-  const response = data.map((news) => {
-    const readInfo = news.student_news_reads?.[0] || {};
-    return {
-      student_news_id: news.student_news_id,
-      title: news.title,
-      news_category_id: news.news_category_id,
-      news_contents: news.news_contents,
-      is_public: news.is_public,
-      high_priority: news.high_priority,
-      is_deleted: news.is_deleted,
-      created_at: news.created_at,
-      updated_at: news.updated_at,
-      is_read: readInfo.is_read || false,
-      read_at: readInfo.read_at || null,
-    };
-  });
+  return c.json(result);
 
-  return c.json(response);
 });
 
 studentNewsRouter.get("/:id", async (c) => {
   const id = Number(c.req.param("id"));
   const supabase = createSupabaseClient(c);
   const userId = "2240002";
+
+
+  const { data, error } = await supabase
+    .rpc('get_student_news',{})
+    .eq("student_news_id", id)
+    .single();
+  
+  if (error) return c.json({ error: error.message }, 500);
+  if (!data) return c.json({ error: "News not found" }, 404);
 
   if (!userId) {
     return c.json({ error: "User ID is required" }, 400);
@@ -133,7 +115,7 @@ studentNewsRouter.post(
   async (c) => {
     const studentData = c.req.valid("json");
     const supabase = createSupabaseClient(c);
-
+    
     const { data, error } = await supabase
       .from("student_news")
       .insert(studentData)

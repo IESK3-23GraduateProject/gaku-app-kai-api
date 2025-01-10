@@ -14,15 +14,23 @@ const createStudentNewsSchema = z.object({
   is_public: z.boolean(),
   high_priority: z.boolean(),
   is_deleted: z.boolean().default(false),
+  parson_category:z.string(),
+  value:z.number(),
 });
 
 studentNewsRouter.get("/", async (c) => {
   const supabase = createSupabaseClient(c);
 
-  const { data, error } = await supabase.from("student_news").select("*");
+  const { data, error } = await supabase.rpc('get_student_news',{});
 
   if (error) return c.json({ error: error.message }, 500);
-  return c.json(data);
+
+  const result = data.map((item:any)=>({
+    ...item,
+    is_read: item.read_at !== null
+  }))
+
+  return c.json(result);
 });
 
 studentNewsRouter.get("/:id", async (c) => {
@@ -30,11 +38,10 @@ studentNewsRouter.get("/:id", async (c) => {
   const supabase = createSupabaseClient(c);
 
   const { data, error } = await supabase
-    .from("student_news")
-    .select("*")
+    .rpc('get_student_news',{})
     .eq("student_news_id", id)
     .single();
-
+  
   if (error) return c.json({ error: error.message }, 500);
   if (!data) return c.json({ error: "News not found" }, 404);
 
@@ -47,7 +54,7 @@ studentNewsRouter.post(
   async (c) => {
     const studentData = c.req.valid("json");
     const supabase = createSupabaseClient(c);
-
+    
     const { data, error } = await supabase
       .from("student_news")
       .insert(studentData)

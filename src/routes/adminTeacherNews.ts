@@ -3,6 +3,9 @@ import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { createSupabaseClient } from "../supabaseClient";
 
+const ADMIN_TEST_ID = "1240005";
+const TEACHER_TEST_ID = "3240006";
+
 const teacherAdminNewsRouter = new Hono();
 
 const createTeacherAdminNewsSchema = z.object({
@@ -20,64 +23,28 @@ const createTeacherAdminNewsSchema = z.object({
 teacherAdminNewsRouter.get("/", async (c) => {
   const supabase = createSupabaseClient(c);
 
-  const userId = "3240006";
+  const userId = ADMIN_TEST_ID;
 
   if (!userId) {
     return c.json({ error: "User ID is required" }, 400);
   }
 
-  const isTeacher = userId.startsWith("3");
-  const isAdmin = userId.startsWith("1");
-
   try {
-    let query = supabase
-      .from("teacher_admin_news")
-      .select(
-        `
-        *,
-        teacher_admin_news_reads (
-          is_read,
-          read_at
-        )
-      `
-      )
-      .order("created_at", { ascending: false });
-
-    if (isTeacher) {
-      query = query.eq("teacher_admin_news_reads.teacher_user_id", userId);
-    }
-
-    if (isAdmin) {
-      query = query.eq("teacher_admin_news_reads.admin_user_id", userId);
-    }
-
-    const { data, error } = await query;
+    const { data, error } = await supabase.rpc("get_teacher_admin_news", {
+      user_id: userId,
+    });
 
     if (error) {
       throw error;
     }
 
-    const response = data.map((news) => ({
-      teacher_admin_news_id: news.teacher_admin_news_id,
-      title: news.title,
-      news_category_id: news.news_category_id,
-      news_contents: news.news_contents,
-      is_public: news.is_public,
-      high_priority: news.high_priority,
-      is_deleted: news.is_deleted,
-      created_at: news.created_at,
-      updated_at: news.updated_at,
-      is_read: news.teacher_admin_news_reads?.[0]?.is_read || false,
-      read_at: news.teacher_admin_news_reads?.[0]?.read_at || null,
-    }));
-
-    return c.json(response);
+    return c.json(data);
   } catch (error) {
     console.error("Error fetching teacher admin news:", error);
 
     return c.json(
       {
-        error,
+        error: error || "An unexpected error occurred",
       },
       500
     );
@@ -86,9 +53,12 @@ teacherAdminNewsRouter.get("/", async (c) => {
 
 teacherAdminNewsRouter.get("/:id", async (c) => {
   const id = Number(c.req.param("id"));
+  if (isNaN(id)) {
+    return c.json({ error: "Invalid news ID" }, 400);
+  }
 
   const supabase = createSupabaseClient(c);
-  const userId = "3240006";
+  const userId = ADMIN_TEST_ID;
 
   if (!userId) {
     return c.json({ error: "User ID is required" }, 400);
@@ -97,28 +67,35 @@ teacherAdminNewsRouter.get("/:id", async (c) => {
   const isTeacher = userId.startsWith("3");
   const isAdmin = userId.startsWith("1");
 
+  if (!isTeacher && !isAdmin) {
+    return c.json({ error: "User must be either a teacher or an admin" }, 400);
+  }
+
   try {
-    const { data, error } = await supabase
-      .from("teacher_admin_news")
-      .select(
-        `
-      *,
-      teacher_admin_news_reads (
-          is_read,
-          read_at
-        )
-      `
-      )
+    // Fetch the news by ID
+    const { data, error } = await supabase.rpc("get_teacher_admin_news_by_id", {
+      p_teacher_admin_news_id: id,
+      user_id: userId,
+    });
+
+    if (error) return c.json({ error: error.message }, 500);
+    if (!data) return c.json({ error: "News not found" }, 404);
+
+    // Check if a read status already exists for this user and news ID
+    const { data: existingReadStatus, error: fetchError } = await supabase
+      .from("teacher_admin_news_reads")
+      .select("*")
+      .eq(isTeacher ? "teacher_user_id" : "admin_user_id", userId)
       .eq("teacher_admin_news_id", id)
       .single();
 
-    if (error) return c.json({ error: error.message }, 500);
+    if (fetchError && fetchError.code !== "PGRST116") {
+      console.error("Error fetching existing read status:", fetchError);
+      return c.json({ error: fetchError.message }, 500);
+    }
 
-    if (!data) return c.json({ error: "News not found" }, 404);
-
-    const readStatus = data.teacher_admin_news_reads?.[0];
-
-    if (!readStatus) {
+    // If no existing read status, insert a new one
+    if (!existingReadStatus) {
       const insertPayload: Record<string, any> = {
         teacher_admin_news_id: id,
         is_read: true,
@@ -129,11 +106,6 @@ teacherAdminNewsRouter.get("/:id", async (c) => {
         insertPayload.teacher_user_id = userId;
       } else if (isAdmin) {
         insertPayload.admin_user_id = userId;
-      } else {
-        return c.json(
-          { error: "User must be either a teacher or an admin" },
-          400
-        );
       }
 
       const { error: insertError } = await supabase
@@ -144,18 +116,20 @@ teacherAdminNewsRouter.get("/:id", async (c) => {
         console.error("Insert read status error:", insertError);
         return c.json({ error: insertError.message }, 500);
       }
+
+      // Update response with new read status
+      data.is_read = true;
+      data.read_at = insertPayload.read_at;
+    } else {
+      // Existing read status found, use it in the response
+      data.is_read = existingReadStatus.is_read;
+      data.read_at = existingReadStatus.read_at;
     }
 
-    const response = {
-      ...data,
-      is_read: readStatus ? readStatus.is_read : true,
-      read_at: readStatus?.read_at || new Date().toISOString(),
-    };
-
-    return c.json(response);
+    return c.json(data);
   } catch (error) {
     console.error("Unexpected error:", error);
-    return c.json({ error }, 500);
+    return c.json({ error: error || "Unexpected error occurred" }, 500);
   }
 });
 

@@ -17,7 +17,8 @@ const createTeacherAdminNewsSchema = z.object({
   is_public: z.boolean(),
   high_priority: z.boolean(),
   is_deleted: z.boolean().default(false),
-  mention_user_ids: z.array(z.number()),
+  publish_at: z.string().datetime({ message: "Invalid datetime format" }),
+  mentioned_user_ids: z.array(z.number()),
 });
 
 teacherAdminNewsRouter.get("/", async (c) => {
@@ -137,45 +138,70 @@ teacherAdminNewsRouter.post(
   "/",
   zValidator("json", createTeacherAdminNewsSchema),
   async (c) => {
-    const { mention_user_ids, ...newsData } = c.req.valid("json");
     const supabase = createSupabaseClient(c);
 
-    // Start a transaction
-    const { data: newsDataResult, error: newsError } = await supabase
-      .from("teacher_admin_news")
-      .insert(newsData)
-      .select();
+    try {
+      const { mentioned_user_ids, ...newsData } = c.req.valid("json");
 
-    if (newsError) return c.json({ error: newsError.message }, 500);
-
-    const teacherAdminNewsId = newsDataResult[0].teacher_admin_news_id;
-
-    const mentionsData = mention_user_ids.map((userId) => {
-      const userIdString = String(userId);
-
-      return {
-        teacher_admin_news_id: teacherAdminNewsId,
-        teacher_user_id: userIdString.startsWith("3") ? userId : null,
-        admin_user_id: userIdString.startsWith("1") ? userId : null,
-        created_at: new Date().toISOString(),
-      };
-    });
-
-    // Insert mentions
-    const { error: mentionsError } = await supabase
-      .from("teacher_admin_news_mentions")
-      .insert(mentionsData);
-
-    if (mentionsError) {
-      // Rollback if mentions insertion fails
-      await supabase
+      // Step 1: Insert teacher/admin news
+      const { data: newsDataResult, error: newsError } = await supabase
         .from("teacher_admin_news")
-        .delete()
-        .eq("teacher_admin_news_id", teacherAdminNewsId);
-      return c.json({ error: mentionsError.message }, 500);
-    }
+        .insert(newsData)
+        .select()
+        .single();
 
-    return c.json({ news: newsDataResult[0], mentions: mentionsData }, 201);
+      if (newsError) {
+        throw new Error(
+          `Error inserting teacher/admin news: ${newsError.message}`
+        );
+      }
+
+      const teacherAdminNewsId = newsDataResult.teacher_admin_news_id;
+
+      // Step 2: Prepare mentions data
+      const mentionsData = mentioned_user_ids.map((userId) => {
+        const userIdString = String(userId);
+
+        return {
+          teacher_admin_news_id: teacherAdminNewsId,
+          teacher_user_id: userIdString.startsWith("3") ? userId : null,
+          admin_user_id: userIdString.startsWith("1") ? userId : null,
+        };
+      });
+
+      // Step 3: Insert mentions
+      const { error: mentionsError } = await supabase
+        .from("teacher_admin_news_mentions")
+        .insert(mentionsData);
+
+      if (mentionsError) {
+        // Rollback if mentions insertion fails
+        await supabase
+          .from("teacher_admin_news")
+          .delete()
+          .eq("teacher_admin_news_id", teacherAdminNewsId);
+        throw new Error(`Error inserting mentions: ${mentionsError.message}`);
+      }
+
+      return c.json(
+        {
+          success: true,
+          message: "Teacher/Admin news and mentions created successfully",
+          news: newsDataResult,
+          mentions: mentionsData,
+        },
+        201
+      );
+    } catch (error) {
+      console.error("Error creating teacher/admin news with mentions:", error);
+      return c.json(
+        {
+          success: false,
+          error: error || "An unexpected error occurred",
+        },
+        500
+      );
+    }
   }
 );
 

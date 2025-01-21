@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-import { array, z } from "zod";
+import { z } from "zod";
 import { zValidator } from "@hono/zod-validator";
 import { createSupabaseClient } from "../supabaseClient";
 

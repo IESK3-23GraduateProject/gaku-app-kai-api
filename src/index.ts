@@ -8,6 +8,8 @@ import coursesRouter from "./routes/courses";
 import schoolEventsRouter from "./routes/schoolEvents";
 import teacherRouter from "./routes/teachers";
 import adminRouter from "./routes/admins";
+import studentMentionsRouter from "./routes/studentMentions";
+import teacherMentionsRouter from "./routes/teacherMentions";
 
 const app = new Hono();
 app.use("*", cors());
@@ -17,8 +19,10 @@ app.get("/", (c) => c.text("Gaku-app Kai Api"));
 
 // Mount Routes
 app.route("/students", studentRouter);
+app.route("/student-mentions", studentMentionsRouter);
 app.route("/student-news", studentNewsRouter);
 app.route("/teacher-admin-news", teacherAdminNewsRouter);
+app.route("/teacher-admin-mentions", teacherMentionsRouter);
 app.route("/courses", coursesRouter);
 app.route("/school-events", schoolEventsRouter);
 app.route("/teachers", teacherRouter);

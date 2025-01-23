@@ -8,6 +8,7 @@ import coursesRouter from "./routes/courses";
 import schoolEventsRouter from "./routes/schoolEvents";
 import teacherRouter from "./routes/teachers";
 import adminRouter from "./routes/admins";
+import loginRouter from "./routes/login";
 import studentMentionsRouter from "./routes/studentMentions";
 import teacherMentionsRouter from "./routes/teacherMentions";
 
@@ -27,6 +28,7 @@ app.route("/courses", coursesRouter);
 app.route("/school-events", schoolEventsRouter);
 app.route("/teachers", teacherRouter);
 app.route("/admins", adminRouter);
+app.route("/login", loginRouter);
 
 // Start the server
 const port = 3000;

@@ -16,8 +16,8 @@ const createStudentNewsSchema = z.object({
   is_public: z.boolean(),
   high_priority: z.boolean(),
   is_deleted: z.boolean().default(false),
-  parson_category: z.string(),
-  value: z.number(),
+  publish_at: z.string().datetime({ message: "Invalid datetime format" }),
+  mentioned_user_ids: z.array(z.number()),
 });
 
 studentNewsRouter.get("/", async (c) => {
@@ -122,13 +122,47 @@ studentNewsRouter.post(
     const studentData = c.req.valid("json");
     const supabase = createSupabaseClient(c);
 
-    const { data, error } = await supabase
-      .from("student_news")
-      .insert(studentData)
-      .select();
+    try {
+      // Extract `mentioned_user_ids` from the request
+      const { mentioned_user_ids, ...newsData } = studentData;
 
-    if (error) return c.json({ error: error.message }, 500);
-    return c.json(data, 201);
+      // Insert the student news
+      const { data: news, error: newsError } = await supabase
+        .from("student_news")
+        .insert(newsData)
+        .select()
+        .single();
+
+      if (newsError) {
+        throw new Error(`Error inserting student news: ${newsError.message}`);
+      }
+
+      // Create mentions for the user IDs
+      const mentionsPayload = mentioned_user_ids.map((userId) => ({
+        student_news_id: news.student_news_id,
+        student_user_id: userId,
+      }));
+
+      const { error: mentionsError } = await supabase
+        .from("student_news_mentions")
+        .insert(mentionsPayload);
+
+      if (mentionsError) {
+        throw new Error(`Error creating mentions: ${mentionsError.message}`);
+      }
+
+      return c.json(
+        {
+          success: true,
+          message: "Student news and mentions created successfully",
+          news,
+        },
+        201
+      );
+    } catch (error) {
+      console.error("Error creating student news with mentions:", error);
+      return c.json({ success: false, error }, 500);
+    }
   }
 );
 

@@ -104,4 +104,20 @@ studentRouter.delete("/:id", async (c) => {
   return c.json({ message: "Student deleted successfully" });
 });
 
+studentRouter.get("/hr-class/:id", async (c) => {
+  const supabase = createSupabaseClient(c);
+  const hrClassId = c.req.param("id");
+
+  const { data, error } = await supabase
+    .from("student_users")
+    .select("student_user_id")
+    .eq("hr_class_id", hrClassId);
+
+  if (error) {
+    return c.json({ error: error.message }, 500);
+  }
+
+  return c.json({ data });
+});
+
 export default studentRouter;

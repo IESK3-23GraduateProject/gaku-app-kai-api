@@ -17,11 +17,12 @@ const createschoolEventsSchema = z.object({
 schoolEventsRouter.get("/", async (c) => {
   const supabase = createSupabaseClient(c);
 
+  const today = new Date().toISOString().split("T")[0];
+
   const { data, error } = await supabase
     .from("school_events")
     .select("*")
-    .order("created_at", { ascending: false });
-
+    .gte("start_datetime", today);
   if (error) return c.json({ error: error.message }, 500);
   return c.json(data);
 });

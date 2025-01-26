@@ -108,6 +108,21 @@ studentNewsRouter.get("/:id", async (c) => {
       data.read_at = existingReadStatus.read_at;
     }
 
+    // Mark the mention as read if the student is mentioned
+    const { error: mentionError } = await supabase
+      .from("student_news_mentions")
+      .update({
+        is_mention_read: true,
+        mention_read_at: new Date().toISOString(),
+      })
+      .eq("student_news_id", id)
+      .eq("student_user_id", userId)
+      .eq("is_mention_read", false); // Only update if not already read
+
+    if (mentionError) {
+      console.error("Error updating mention read status:", mentionError);
+    }
+
     return c.json(data);
   } catch (error) {
     console.error("Unexpected error:", error);

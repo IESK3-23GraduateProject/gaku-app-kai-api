@@ -17,7 +17,10 @@ const createschoolEventsSchema = z.object({
 schoolEventsRouter.get("/", async (c) => {
   const supabase = createSupabaseClient(c);
 
-  const { data, error } = await supabase.from("school_events").select("*");
+  const { data, error } = await supabase
+    .from("school_events")
+    .select("*")
+    .order("created_at", { ascending: false });
 
   if (error) return c.json({ error: error.message }, 500);
   return c.json(data);

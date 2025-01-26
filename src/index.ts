@@ -11,7 +11,8 @@ import adminRouter from "./routes/admins";
 import loginRouter from "./routes/login";
 import studentMentionsRouter from "./routes/studentMentions";
 import teacherMentionsRouter from "./routes/teacherMentions";
-
+import absentRouter from "./routes/absent";
+import officialAbsentRouter from "./routes/officialAbsent";
 const app = new Hono();
 app.use("*", cors());
 
@@ -29,6 +30,8 @@ app.route("/school-events", schoolEventsRouter);
 app.route("/teachers", teacherRouter);
 app.route("/admins", adminRouter);
 app.route("/login", loginRouter);
+app.route("/absent", absentRouter);
+app.route("/official-absent", officialAbsentRouter);
 
 // Start the server
 const port = 3000;

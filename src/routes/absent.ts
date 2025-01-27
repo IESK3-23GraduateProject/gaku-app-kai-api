@@ -65,8 +65,8 @@ absentRouter.post("/submit",async (c) => {
       .insert({student_user_id:parseInt(userId,10),user_name:uname,day_off:day.toISOString(),select_type:type,reason:res,other_notes:other_notes})
       .select();
 
-    if (error) return c.json({ success:false, error: error.message,message:error.message }, 500);
-    return c.json({success: true ,data, message: "success"},201); 
+    if (error) return c.json({ success:false, error: error.message,message:"データの送信に失敗しました" }, 500);
+    return c.json({success: true ,data, message: "データを送信しました"},201); 
 });
 
 absentRouter.post(

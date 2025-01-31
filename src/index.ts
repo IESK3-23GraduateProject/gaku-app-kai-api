@@ -13,6 +13,8 @@ import studentMentionsRouter from "./routes/studentMentions";
 import teacherMentionsRouter from "./routes/teacherMentions";
 import absentRouter from "./routes/absent";
 import officialAbsentRouter from "./routes/officialAbsent";
+import push from "./routes/push";
+
 const app = new Hono();
 app.use("*", cors());
 
@@ -32,6 +34,7 @@ app.route("/admins", adminRouter);
 app.route("/login", loginRouter);
 app.route("/absent", absentRouter);
 app.route("/official-absent", officialAbsentRouter);
+app.route("/push", push);
 
 // Start the server
 const port = 3000;
